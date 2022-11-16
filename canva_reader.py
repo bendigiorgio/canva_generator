@@ -1,7 +1,13 @@
+import os
 from paddleocr import PaddleOCR
 import numpy as np
 import pandas as pd
+import selenium as sl
+from dotenv import load_dotenv
 
+load_dotenv()
+breakfast_link = os.environ.get("BF_LINK")
+lunch_link = os.ebviron.get("LUNCH_LINK")
 
 img_path = "/Users/bdigio17/Documents/Python_git/Python_ML/nikko_name/menu.jpg"
 
@@ -49,5 +55,10 @@ def clean_text(text_df: pd.DataFrame) -> tuple[int, bool, str, pd.DataFrame]:
 
     # Mark low score text
     text_df["Acc_Warning"] = text_df["Score"].apply(lambda x: 0 if x >= 0.8 else 1)
-    
+
     return month, is_premium, buffet_type, text_df
+
+
+def to_canva(df: pd.DataFrame, is_premium: bool, buffet_type: str):
+
+    return
