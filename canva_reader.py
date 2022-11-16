@@ -1,13 +1,20 @@
 import os
+import time
 from paddleocr import PaddleOCR
 import numpy as np
 import pandas as pd
-import selenium as sl
 from dotenv import load_dotenv
+from selenium import webdriver
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 
 load_dotenv()
 breakfast_link = os.environ.get("BF_LINK")
 lunch_link = os.ebviron.get("LUNCH_LINK")
+
+
 
 img_path = "/Users/bdigio17/Documents/Python_git/Python_ML/nikko_name/menu.jpg"
 
@@ -59,6 +66,20 @@ def clean_text(text_df: pd.DataFrame) -> tuple[int, bool, str, pd.DataFrame]:
     return month, is_premium, buffet_type, text_df
 
 
-def to_canva(df: pd.DataFrame, is_premium: bool, buffet_type: str):
-
-    return
+def to_canva(df: pd.DataFrame, month:int, is_premium: bool, buffet_type: str) -> str:
+    driver = webdriver.Chrome("/usr/local/bin/chromedriver")
+    wait = WebDriverWait(driver, 10)
+    if buffet_type == "朝食":
+        driver.get(breakfast_link)
+    elif buffet_type == "ランチ" or "ディナー":
+        driver.get(lunch_link)
+    time.sleep(1)
+    driver.find_element(By.XPATH, '//button/span[text()="File"]').click()
+    driver.find_element(By.XPATH, '//button/span[text()="Make a copy"]').click()
+    wait.until(EC.number_of_windows_to_be(2))
+    driver.switch_to.window(driver.window_handles[-1]) # last opened tab handle
+    driver.find_element(By.XPATH, '//input[@aria-label="Design title"]').send_keys(f'{month}_{buffet_type}')
+    driver.find_element(By.XPATH, '//div[@class="_3stTEQ imh8lg z8nqQQ"]/p[text()="."]').click() 
+    driver.find_element(By.XPATH, '//div[@class="_3stTEQ imh8lg z8nqQQ"]/p[text()="."]').click()
+    driver.find_element(By.XPATH, '//div[@class="_3stTEQ imh8lg z8nqQQ"]/p[text()="."]').send_keys() 
+    return canva_link
