@@ -3,12 +3,12 @@ import numpy as np
 import pandas as pd
 
 
-img_path = '/Users/bdigio17/Documents/Python_git/Python_ML/nikko_name/menu.jpg'
+img_path = "/Users/bdigio17/Documents/Python_git/Python_ML/nikko_name/menu.jpg"
 
 
 def get_text(image_path: str) -> pd.DataFrame:
-    ocr = PaddleOCR(use_angle_cls=True, lang='japan')
-    df_columns = ['Text', 'Score']
+    ocr = PaddleOCR(use_angle_cls=True, lang="japan")
+    df_columns = ["Text", "Score"]
     result = ocr.ocr(img_path, cls=True)
 
     # Take only to score and text from the result
@@ -25,24 +25,29 @@ def get_text(image_path: str) -> pd.DataFrame:
 
     return df
 
-def clean_text(text_df: pd.DataFrame):
-    month = text_df[text_df['Text'].str.contains('月')]
+
+def clean_text(text_df: pd.DataFrame) -> tuple[int, bool, str, pd.DataFrame]:
+    month = text_df[text_df["Text"].str.contains("月")]
     if len(month) > 3 or None:
-         raise ValueError("No Month Detected in the Text")
+        raise ValueError("No Month Detected in the Text")
 
-    #Take only the number value for month
-    month =  int(month.rpartition('月')[0])
+    # Take only the number value for month
+    month = int(month.rpartition("月")[0])
 
-    #Check if it is a premium buffet
-    premium = text_df[text_df['Text'].str.contains('プレミアム')]
-    if premium != '':
+    # Check if it is a premium buffet
+    premium = text_df[text_df["Text"].str.contains("プレミアム")]
+    if premium != "":
         is_premium = True
 
-    #Check the type of buffet
-    if text_df['Text'].str.contains('朝食').any():
-        buffet_type = '朝食'
-    elif text_df['Text'].str.contains('ランチ').any():
-        buffet_type = 'ランチ'
-    elif text_df['Text'].str.contains('ディナー').any():
-        buffet_type = 'ディナー'
-    return month, is_premium, buffet_type
+    # Check the type of buffet
+    if text_df["Text"].str.contains("朝食").any():
+        buffet_type = "朝食"
+    elif text_df["Text"].str.contains("ランチ").any():
+        buffet_type = "ランチ"
+    elif text_df["Text"].str.contains("ディナー").any():
+        buffet_type = "ディナー"
+
+    # Mark low score text
+    text_df["Acc_Warning"] = text_df["Score"].apply(lambda x: 0 if x >= 0.8 else 1)
+    
+    return month, is_premium, buffet_type, text_df
