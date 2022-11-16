@@ -45,7 +45,7 @@ def clean_text(text_df: pd.DataFrame) -> tuple[int, bool, str, pd.DataFrame]:
         raise ValueError("No Month Detected in the Text")
 
     # Take only the number value for month
-    month = int(month.rpartition("月")[0])
+    month = int(month.rpartition("月", False)[0])
 
     # Check if it is a premium buffet
     premium = text_df[text_df["Text"].str.contains("プレミアム")]
@@ -66,6 +66,7 @@ def clean_text(text_df: pd.DataFrame) -> tuple[int, bool, str, pd.DataFrame]:
     text_df["Acc_Warning"] = text_df["Score"].apply(lambda x: 0 if x >= 0.8 else 1)
 
     # Remove unused lines
+    text_df["Text"] = text_df["Text"].str.rpartition("・", False)[2] # Remove all to the left of ・
     text_df.drop(text_df.loc[text_df["Text"].str.len() <= 1].index, inplace=True)
     text_df.dropna()
     text_df.drop(text_df["Text"].str.contains(buffet_type), inplace=True)
