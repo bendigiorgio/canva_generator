@@ -9,11 +9,11 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+import tkinter as tk
 
 load_dotenv()
 breakfast_link = os.environ.get("BF_LINK")
 lunch_link = os.ebviron.get("LUNCH_LINK")
-
 
 
 img_path = "/Users/bdigio17/Documents/Python_git/Python_ML/nikko_name/menu.jpg"
@@ -55,18 +55,26 @@ def clean_text(text_df: pd.DataFrame) -> tuple[int, bool, str, pd.DataFrame]:
     # Check the type of buffet
     if text_df["Text"].str.contains("朝食").any():
         buffet_type = "朝食"
+
     elif text_df["Text"].str.contains("ランチ").any():
         buffet_type = "ランチ"
+
     elif text_df["Text"].str.contains("ディナー").any():
         buffet_type = "ディナー"
 
     # Mark low score text
     text_df["Acc_Warning"] = text_df["Score"].apply(lambda x: 0 if x >= 0.8 else 1)
 
+    # Remove unused lines
+    text_df.drop(text_df.loc[text_df["Text"].str.len() <= 1].index, inplace=True)
+    text_df.dropna()
+    text_df.drop(text_df["Text"].str.contains(buffet_type), inplace=True)
+    text_df.drop(text_df[text_df["Text"].str.contains("プレミアム")].index, inplace=True)
+
     return month, is_premium, buffet_type, text_df
 
 
-def to_canva(df: pd.DataFrame, month:int, is_premium: bool, buffet_type: str) -> str:
+def to_canva(df: pd.DataFrame, month: int, is_premium: bool, buffet_type: str) -> str:
     driver = webdriver.Chrome("/usr/local/bin/chromedriver")
     wait = WebDriverWait(driver, 10)
     if buffet_type == "朝食":
@@ -77,9 +85,40 @@ def to_canva(df: pd.DataFrame, month:int, is_premium: bool, buffet_type: str) ->
     driver.find_element(By.XPATH, '//button/span[text()="File"]').click()
     driver.find_element(By.XPATH, '//button/span[text()="Make a copy"]').click()
     wait.until(EC.number_of_windows_to_be(2))
-    driver.switch_to.window(driver.window_handles[-1]) # last opened tab handle
-    driver.find_element(By.XPATH, '//input[@aria-label="Design title"]').send_keys(f'{month}_{buffet_type}')
-    driver.find_element(By.XPATH, '//div[@class="_3stTEQ imh8lg z8nqQQ"]/p[text()="."]').click() 
-    driver.find_element(By.XPATH, '//div[@class="_3stTEQ imh8lg z8nqQQ"]/p[text()="."]').click()
-    driver.find_element(By.XPATH, '//div[@class="_3stTEQ imh8lg z8nqQQ"]/p[text()="."]').send_keys() 
+    driver.switch_to.window(driver.window_handles[-1])  # last opened tab handle
+    driver.find_element(By.XPATH, '//input[@aria-label="Design title"]').send_keys(
+        f"{month}_{buffet_type}"
+    )
+
+    # Creates pages for every item
+    for i in range(len(df)):
+        driver.find_element(
+            By.XPATH, '//div[@class="_8VoL_g"]/button[@aria-label="Duplicate page"]'
+        ).click()
+        time.sleep(0.5)
+        driver.find_element_by_xpath("//body").send_keys(Keys.HOME)
+
+    # Add text to each card
+    for line in df["Text"].iterrows():
+        driver.find_element(
+            By.XPATH, '//div[@class="_3stTEQ imh8lg z8nqQQ"]/p[text()="."]'
+        ).click()
+        driver.find_element(
+            By.XPATH, '//div[@class="_3stTEQ imh8lg z8nqQQ"]/p[text()="."]'
+        ).click()
+        driver.find_element(
+            By.XPATH, '//div[@class="_3stTEQ imh8lg z8nqQQ"]/p[text()="."]'
+        ).send_keys(line)
+        time.sleep(0.5)
+        driver.find_element_by_xpath('//div[@class="efGBqA"]').click()
+        driver.find_element_by_xpath("//body").send_keys(Keys.PAGE_DOWN)
+
+    # Gets shareable link
+    driver.find_element(By.XPATH, '//button[@aria-describedby="__a11yId80').click()
+    driver.find_element(By.XPATH, '//button[@aria-describedby="__a11yId85').click()
+    driver.find_element(By.XPATH, '//li[@id="__a11yId83--2"]/button').click()
+    driver.find_element(By.XPATH, '//button[@aria-label="Copy link"').click()
+    # Gets link from clipboard
+    root = tk.Tk()
+    canva_link = root.clipboard_get()
     return canva_link
