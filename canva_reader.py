@@ -11,12 +11,11 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import tkinter as tk
 
+img_path = "/Users/bdigio17/Documents/Python_git/Python_ML/nikko_name/menu.jpg"
 load_dotenv()
 breakfast_link = os.environ.get("BF_LINK")
 lunch_link = os.ebviron.get("LUNCH_LINK")
 
-
-img_path = "/Users/bdigio17/Documents/Python_git/Python_ML/nikko_name/menu.jpg"
 
 
 def get_text(image_path: str) -> pd.DataFrame:
@@ -66,7 +65,9 @@ def clean_text(text_df: pd.DataFrame) -> tuple[int, bool, str, pd.DataFrame]:
     text_df["Acc_Warning"] = text_df["Score"].apply(lambda x: 0 if x >= 0.8 else 1)
 
     # Remove unused lines
-    text_df["Text"] = text_df["Text"].str.rpartition("・", False)[2] # Remove all to the left of ・
+    text_df["Text"] = text_df["Text"].str.rpartition("・", False)[
+        2
+    ]  # Remove all to the left of ・
     text_df.drop(text_df.loc[text_df["Text"].str.len() <= 1].index, inplace=True)
     text_df.dropna()
     text_df.drop(text_df["Text"].str.contains(buffet_type), inplace=True)
@@ -75,6 +76,7 @@ def clean_text(text_df: pd.DataFrame) -> tuple[int, bool, str, pd.DataFrame]:
     return month, is_premium, buffet_type, text_df
 
 
+# Creates the canva document
 def to_canva(df: pd.DataFrame, month: int, is_premium: bool, buffet_type: str) -> str:
     driver = webdriver.Chrome("/usr/local/bin/chromedriver")
     wait = WebDriverWait(driver, 10)
@@ -119,7 +121,11 @@ def to_canva(df: pd.DataFrame, month: int, is_premium: bool, buffet_type: str) -
     driver.find_element(By.XPATH, '//button[@aria-describedby="__a11yId85').click()
     driver.find_element(By.XPATH, '//li[@id="__a11yId83--2"]/button').click()
     driver.find_element(By.XPATH, '//button[@aria-label="Copy link"').click()
+
     # Gets link from clipboard
     root = tk.Tk()
     canva_link = root.clipboard_get()
+    root.destroy()  # Destroy the Tkinter instance
+    driver.quit() # Destroy the Selenium Browser Instance
+
     return canva_link
