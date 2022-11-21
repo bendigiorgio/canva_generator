@@ -14,3 +14,12 @@ Add links to the Canva templates to the environment variables and add a photo of
 
 ## Future
 To be added to a website to allow for users to upload a photo and have their Canva made in an easier fashion.
+
+# Menu Canva Generator (docx)
+
+## Purpose
+Uses a formatted docx file and copies the contents menu item one at a time to the clipboard to easily paste into Canva. Further, it cleans the text prior to copying.
+
+## Usage
+Add links .docx with the syntax "menu.docx" - See example for structure.
+<br>Run the program and it will copy a new line every time you paste one until all lines are pasted.
